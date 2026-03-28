@@ -35,19 +35,19 @@ graph TD
     Response -->|Chatbot| ChatReturn["💬<br/>Return AI Response<br/>to User"]
     Response -->|Summary| SummaryReturn["📋<br/>Return Summary<br/>to Dashboard"]
     
-    ChatReturn --> StoreData["💾<br/>Store Embedding<br/>& Metadata"]
-    SummaryReturn --> StoreData
+    SummaryReturn --> StoreData["💾<br/>Store Embedding<br/>& Metadata"]
     
     StoreData --> UpdateDB["🗄️<br/>Update PostgreSQL<br/>& PgVector"]
     
+    ChatReturn --> UserChoice{{"User<br/>Action?"}}
     
-    UpdateDB --> UserChoice{{"User<br/>Action?"}}
+    UpdateDB
     
     UserChoice -->|Continue Chat| InputChoice
     UserChoice -->|Log Activity| LogActivity["🏃<br/>Log Wellness<br/>Activity"]
     UserChoice -->|Exit| End(["✓ Session End"])
     
-    LogActivity --> DisplayDash
+    LogActivity --> DisplayDashboard
     
     style Start fill:#333,stroke:#000,stroke-width:3px,color:#fff
     style End fill:#333,stroke:#000,stroke-width:3px,color:#fff
@@ -71,7 +71,7 @@ graph TD
     style SummaryReturn fill:#444,stroke:#000,stroke-width:2px,color:#fff
     style StoreData fill:#444,stroke:#000,stroke-width:2px,color:#fff
     style UpdateDB fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style DisplayDash fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style DisplayDashboard fill:#444,stroke:#000,stroke-width:2px,color:#fff
     style LogActivity fill:#444,stroke:#000,stroke-width:2px,color:#fff
 ```
 
