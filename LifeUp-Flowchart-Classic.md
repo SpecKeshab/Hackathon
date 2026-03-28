@@ -40,17 +40,14 @@ graph TD
     
     StoreData --> UpdateDB["🗄️<br/>Update PostgreSQL<br/>& PgVector"]
     
-    UpdateDB --> DisplayDash["📊<br/>Display on<br/>Dashboard"]
     
-    DisplayDash --> UserChoice{{"User<br/>Action?"}}
+    UpdateDB --> UserChoice{{"User<br/>Action?"}}
     
     UserChoice -->|Continue Chat| InputChoice
     UserChoice -->|Log Activity| LogActivity["🏃<br/>Log Wellness<br/>Activity"]
-    UserChoice -->|Visit Forum| Forum["👥<br/>Browse Community<br/>Forum"]
     UserChoice -->|Exit| End(["✓ Session End"])
     
     LogActivity --> DisplayDash
-    Forum --> DisplayDash
     
     style Start fill:#333,stroke:#000,stroke-width:3px,color:#fff
     style End fill:#333,stroke:#000,stroke-width:3px,color:#fff
@@ -76,7 +73,6 @@ graph TD
     style UpdateDB fill:#444,stroke:#000,stroke-width:2px,color:#fff
     style DisplayDash fill:#444,stroke:#000,stroke-width:2px,color:#fff
     style LogActivity fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style Forum fill:#444,stroke:#000,stroke-width:2px,color:#fff
 ```
 
 ## Legend
