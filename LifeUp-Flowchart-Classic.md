@@ -1,83 +1,148 @@
-# LifeUp Platform - User Flow Diagram
+# Serene — System Flow Diagram
 
-## Complete User Journey & System Process
+## Complete User Journey & System Architecture
 
 ```mermaid
 graph TD
-    Start(["👤 User Starts<br/>LifeUp App"]) --> InputChoice{{"Input Type?"}}
-    
-    InputChoice -->|Voice| VoiceInput["🎤<br/>Voice Input<br/>Web Speech API"]
-    InputChoice -->|Text| TextInput["⌨️<br/>Text Input<br/>User Types"]
-    
-    VoiceInput --> STT["📝<br/>Speech-to-Text<br/>Transcription"]
-    TextInput --> Preprocess["🔄<br/>Preprocessing<br/>Clean & Format"]
-    STT --> Preprocess
-    
-    Preprocess --> QueryEmbed["🧮<br/>Generate Query<br/>Embedding Vector"]
-    
-    QueryEmbed --> VectorSearch["🔍<br/>Vector Search<br/>Query PgVector"]
-    
-    VectorSearch --> MetaRetrieval["📚<br/>Retrieve Metadata<br/>From PostgreSQL"]
-    
-    VectorSearch --> ContextCheck{{"Context<br/>Retrieved?"}}
-    ContextCheck -->|Yes| Assembly["🛠️<br/>Assemble Context<br/>Combine Information"]
-    ContextCheck -->|No| DefaultContext["⚠️<br/>Use Default<br/>Context"]
-    DefaultContext --> Assembly
-    
-    MetaRetrieval --> Assembly
-    
-    Assembly --> LLMCall["🤖<br/>Call LLM Model<br/>Generate Response"]
-    
-    LLMCall --> Summarize["📄<br/>Smart Summarization<br/>Create Summary"]
-    
-    Summarize --> Response{{"Response<br/>Type?"}}
-    
-    Response -->|Chatbot| ChatReturn["💬<br/>Return AI Response<br/>to User"]
-    Response -->|Summary| SummaryReturn["📋<br/>Return Summary<br/>to Dashboard"]
-    
-    SummaryReturn --> StoreData["💾<br/>Store Embedding<br/>& Metadata"]
-    
-    StoreData --> UpdateDB["🗄️<br/>Update PostgreSQL<br/>& PgVector"]
-    
-    ChatReturn --> UserChoice{{"User<br/>Action?"}}
-    
-    UpdateDB
-    
-    UserChoice -->|Continue Chat| InputChoice
-    UserChoice -->|Log Activity| LogActivity["🏃<br/>Log Wellness<br/>Activity"]
-    UserChoice -->|Exit| End(["✓ Session End"])
-    
-    LogActivity --> DisplayDashboard
-    
-    style Start fill:#333,stroke:#000,stroke-width:3px,color:#fff
-    style End fill:#333,stroke:#000,stroke-width:3px,color:#fff
-    style InputChoice fill:#555,stroke:#000,stroke-width:2px,color:#fff
-    style ContextCheck fill:#555,stroke:#000,stroke-width:2px,color:#fff
-    style Response fill:#555,stroke:#000,stroke-width:2px,color:#fff
-    style UserChoice fill:#555,stroke:#000,stroke-width:2px,color:#fff
-    
-    style VoiceInput fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style TextInput fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style STT fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style Preprocess fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style QueryEmbed fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style VectorSearch fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style MetaRetrieval fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style Assembly fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style DefaultContext fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style LLMCall fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style Summarize fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style ChatReturn fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style SummaryReturn fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style StoreData fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style UpdateDB fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style DisplayDashboard fill:#444,stroke:#000,stroke-width:2px,color:#fff
-    style LogActivity fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    Start(["👤 User Opens<br/>Serene App"]) --> Auth{{"User Exists?"}}
+
+    Auth -->|No| CreateUser["🆕<br/>Auto-Create User<br/>POST /api/v1/user/{username}"]
+    Auth -->|Yes| LoadDashboard["🏠<br/>Load Dashboard<br/>home.jsx"]
+    CreateUser --> LoadDashboard
+
+    LoadDashboard --> FetchAll["📡<br/>Hydrate State<br/>Parallel API Calls"]
+
+    FetchAll --> FetchPlan["📋<br/>GET /daily/{user}/plan<br/>Merged Task Schedule"]
+    FetchAll --> FetchUser["👤<br/>GET /user/{user}<br/>XP + Level"]
+    FetchAll --> FetchStats["📊<br/>GET /stats/mental/{user}<br/>Session History"]
+
+    FetchPlan --> MergeSources["🔀<br/>Merge Task Sources<br/>task_service.get_tasks()"]
+    MergeSources --> DefaultTasks["⚡<br/>DEFAULT Tasks<br/>SQLite DB"]
+    MergeSources --> AiTasks["🤖<br/>AI Tasks<br/>SQLite DB"]
+    MergeSources --> CustomTasks["✏️<br/>CUSTOM Tasks<br/>JSON File"]
+
+    DefaultTasks & AiTasks & CustomTasks --> RenderTabs["🎨<br/>Render Dashboard<br/>Focus / Log / Stats Tabs"]
+    FetchUser --> RenderTabs
+    FetchStats --> RenderTabs
+
+    RenderTabs --> TabChoice{{"Active Tab?"}}
+
+    TabChoice -->|Focus| FocusTab["🎯<br/>Active Quest View<br/>Next Scheduled Task"]
+    TabChoice -->|Log| LogTab["📅<br/>Daily Schedule<br/>All Tasks + Statuses"]
+    TabChoice -->|Stats| StatsTab["📈<br/>Mental Health Stats<br/>Energy & Progress"]
+    TabChoice -->|Chat| ChatFlow["💬<br/>Open Serene Chat<br/>Start / Resume Session"]
+
+    %% Focus Tab
+    FocusTab --> ExecuteBtn["▶️<br/>Start Task Button<br/>POST /daily/{user}/execute"]
+    ExecuteBtn --> CompleteBtn["✅<br/>Complete Task<br/>POST /daily/{user}/complete"]
+    CompleteBtn --> XpCalc["⚙️<br/>Calc XP<br/>Timing + Duration Bonus"]
+    XpCalc --> UpdateXP["💎<br/>Update User XP<br/>SQLite users table"]
+    UpdateXP --> LevelUp{{"Level Up?"}}
+    LevelUp -->|Yes| ShowLevelUp["🎉<br/>Level Up Toast<br/>New Level Displayed"]
+    LevelUp -->|No| RefreshFocus["🔄<br/>Refresh Focus View"]
+    ShowLevelUp --> RefreshFocus
+
+    %% Log Tab — Task Management
+    LogTab --> TaskAction{{"Task Action?"}}
+    TaskAction -->|Add Custom| AddTaskModal["📝<br/>Task Form Modal<br/>activity, time, xp"]
+    AddTaskModal --> PostTask["💾<br/>POST /tasks/{user}/manual<br/>DB + JSON Write"]
+    PostTask --> RefreshLog["🔄<br/>Refresh Plan<br/>GET /daily/{user}/plan"]
+
+    TaskAction -->|Edit Custom| EditModal["✏️<br/>Edit Task Modal<br/>Custom Only"]
+    EditModal --> PutTask["🔁<br/>PUT /tasks/{user}/manual/{time}<br/>DB + JSON Update"]
+    PutTask --> RefreshLog
+
+    TaskAction -->|Delete Custom| DelTask["🗑️<br/>DELETE /tasks/{user}/manual/{time}<br/>DB + JSON Remove"]
+    DelTask --> RefreshLog
+    RefreshLog --> LogTab
+
+    %% Chat Flow
+    ChatFlow --> InputType{{"Input Type?"}}
+    InputType -->|Text| TextMsg["⌨️<br/>Text Message<br/>User Types"]
+    InputType -->|Voice| VoiceMsg["🎤<br/>Voice Message<br/>MediaRecorder API"]
+    VoiceMsg --> UploadAudio["☁️<br/>Upload Audio<br/>POST /sessions/{user}/{id}/voice"]
+    UploadAudio --> SereneCall
+    TextMsg --> SereneCall["🤖<br/>Serene AI Call<br/>POST /sessions/{user}/{id}/chat"]
+
+    SereneCall --> GeminiChat["✨<br/>Gemini 2.0 Flash<br/>oracle_service.py"]
+    GeminiChat --> SessionFile["💾<br/>Append to Session<br/>local_data/session/*.json"]
+    SessionFile --> StreamReply["💬<br/>Serene Reply<br/>Structured JSON Response"]
+    StreamReply --> UserChoice{{"User Action?"}}
+
+    UserChoice -->|Continue| InputType
+    UserChoice -->|End Session| EndSession["🔚<br/>POST /sessions/{user}/{id}/end<br/>Close Session File"]
+
+    EndSession --> Analyze["🔬<br/>POST /sessions/{user}/{id}/analyze<br/>Trigger Analysis"]
+    Analyze --> GeminiAnalysis["🧠<br/>Gemini Analysis<br/>analysis_service.py"]
+    GeminiAnalysis --> ParseResult["📊<br/>Parse JSON Result<br/>Feelings, Energy, Tasks"]
+    ParseResult --> SaveAnalysis["💾<br/>Save to ConversationAnalysis<br/>SQLite DB"]
+    ParseResult --> ReplaceAiTasks["♻️<br/>replace_ai_tasks()<br/>Atomic Swap in DB"]
+    SaveAnalysis & ReplaceAiTasks --> RefreshAll["🔄<br/>Refresh Dashboard<br/>New AI Tasks Visible"]
+    RefreshAll --> RenderTabs
+
+    style Start fill:#222,stroke:#000,stroke-width:3px,color:#fff
+    style Auth fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style TabChoice fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style LevelUp fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style TaskAction fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style InputType fill:#444,stroke:#000,stroke-width:2px,color:#fff
+    style UserChoice fill:#444,stroke:#000,stroke-width:2px,color:#fff
+
+    style CreateUser fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style LoadDashboard fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style FetchAll fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style FetchPlan fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style FetchUser fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style FetchStats fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style MergeSources fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style DefaultTasks fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style AiTasks fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style CustomTasks fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style RenderTabs fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style FocusTab fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style LogTab fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style StatsTab fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style ChatFlow fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style ExecuteBtn fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style CompleteBtn fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style XpCalc fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style UpdateXP fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style ShowLevelUp fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style RefreshFocus fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style AddTaskModal fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style PostTask fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style EditModal fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style PutTask fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style DelTask fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style RefreshLog fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style TextMsg fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style VoiceMsg fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style UploadAudio fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style SereneCall fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style GeminiChat fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style SessionFile fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style StreamReply fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style EndSession fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style Analyze fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style GeminiAnalysis fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style ParseResult fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style SaveAnalysis fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style ReplaceAiTasks fill:#333,stroke:#000,stroke-width:2px,color:#fff
+    style RefreshAll fill:#333,stroke:#000,stroke-width:2px,color:#fff
 ```
 
 ## Legend
 
 - **Ovals**: Start and End points
-- **Rectangles**: Processing steps and actions
+- **Rectangles**: Processing steps and actions  
 - **Diamonds**: Decision points
-- **Black Theme**: Simple, professional appearance
+- **Black Theme**: Consistent with LifeUp Flowchart Classic style
+
+## Task Source Key
+
+| Badge | Source | Storage | Editable? |
+|-------|--------|---------|-----------|
+| ⚡ DEFAULT | Constitution tasks seeded at app creation | SQLite DB | ❌ No |
+| 🤖 AI | Generated by Serene after each session analysis | SQLite DB (replaced each session) | ❌ No |
+| ✏️ CUSTOM | Created by the user | SQLite DB + `local_data/custom_tasks/{user}.json` | ✅ Yes |
+
